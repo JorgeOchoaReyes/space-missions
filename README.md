@@ -7,3 +7,7 @@ The success rate by time is usuful to allow users to see the how launches have i
 The most popular launch sites is useful to allow users to see where launches are taking place and which sites are the most active.
 
 The top ten companies is useful to allow users to see which companies are the most active and which companies are the most successful.
+
+
+## Programmatic Testing
+The functions to be tested programmatically are in the app/api/helper-functions.ts file.
