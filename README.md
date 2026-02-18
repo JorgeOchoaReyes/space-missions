@@ -10,4 +10,4 @@ The top ten companies is useful to allow users to see which companies are the mo
 
 
 ## Programmatic Testing
-The functions to be tested programmatically are in the app/api/helper-functions.ts file.
+The functions to be tested programmatically are in the ```app/api/helper-functions.ts``` file.
