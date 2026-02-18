@@ -1,65 +1,162 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { AppSidebar } from "@/components/app-sidebar"; 
+import { LocationLaunchesChart } from "@/components/charts/location-launches";
+import { CompanyMissionsChart } from "@/components/charts/missions-company";
+import { SuccessRateChart } from "@/components/charts/success-time";
+import { DataTable } from "@/components/data-table";
+import { SectionCards } from "@/components/section-cards";
+import { SiteHeader } from "@/components/site-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";  
+import { useMissions } from "@/hooks/use-missions";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+
+export default function Page() {  
+  const { data, loading, filters, setFilters, filterOptions, resetFilters } = useMissions();
+  
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    > 
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col"> 
+          {loading ? (
+            <div className="flex flex-1 items-center justify-center">
+              <Loader2 className="animate-spin" />
+            </div>
+          ) : (
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                <div className="flex flex-wrap items-center gap-4 px-4 lg:px-6">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">Start Date</span>
+                    <Input 
+                      type="date"
+                      value={filters.startDate} 
+                      onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-[150px]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">End Date</span>
+                    <Input 
+                      type="date"
+                      value={filters.endDate} 
+                      onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="w-[150px]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">Company</span>
+                    <Select 
+                      value={filters.company} 
+                      onValueChange={(v) => setFilters(prev => ({ ...prev, company: v }))}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Company" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filterOptions.companies.map((company) => (
+                          <SelectItem key={company} value={company}>{company}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">Status</span>
+                    <div className="flex items-center gap-2">
+                      <Select 
+                        value={filters.status} 
+                        onValueChange={(v) => setFilters(prev => ({ ...prev, status: v }))}
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filterOptions.statuses.map((status) => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={resetFilters}
+                        className="h-9 px-3"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <SectionCards metrics={{
+                  statusCounts: data?.statusCounts ?? {
+                    Failure: 0,
+                    Success: 0,
+                    "Partial Failure": 0
+                  },
+                  successRate: data?.successRate ?? 0, 
+                  totalMissions: data?.totalMissions ?? 0,
+                  mostUsedRocket: data?.mostUsedRocket ?? ""
+                }} />
+
+                <div className="flex flex-col px-4 gap-6 lg:px-6">
+
+                  <div className="flex flex-col gap-6 lg:flex-row"> 
+                    <Card className="flex-1">
+                      <CardHeader>Top 10 Companies by Missions</CardHeader>
+                      <CardContent>
+                        <CompanyMissionsChart data={data?.missionsCompanyData ?? []} />
+                      </CardContent>
+                    </Card>
+
+                    <Card className="flex-1">
+                      <CardHeader>Launches by Site</CardHeader>
+                      <CardContent>
+                        <LocationLaunchesChart data={data?.locationLaunchesData ?? []} />
+                      </CardContent>
+                    </Card>
+                  </div> 
+
+                  <DataTable data={data?.missions  ?? []} />  
+
+                  <Card>
+                    <CardHeader>Success Rate over the Years</CardHeader>
+                    <CardContent>
+                      <SuccessRateChart data={data?.sucessTimeData ?? []} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
+
